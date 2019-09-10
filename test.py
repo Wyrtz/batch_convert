@@ -1,7 +1,7 @@
 import FindWrongFormat
 from pathlib import Path
 
-wff = FindWrongFormat.wrong_format_finder(Path.cwd())
-a,b = wff.find_wrong_format()
+wff = FindWrongFormat.wrong_format_finder(Path.cwd(), extention=".py", ignore=[".hest"])
+rel_files, uniques = wff.find_wrong_format()
 
-wff.print_wrong_format(padding_char="")
+wff.print_wrong_format()

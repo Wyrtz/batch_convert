@@ -3,8 +3,11 @@ from pathlib import Path
 
 class wrong_format_finder:
 	
-	def __init__(self, root, extention=None):
-		self.ignore = [".py", ".txt", ".png", ".jpg", ".mp4", ".srt", ".sub", ".rar", ".idx", ".zip", ".dvdrip-info", ".nfo", ".rtf",".bat", ".xlsx"]
+	def __init__(self, root, extention=None, ignore=None):
+		if(not ignore):
+			self.ignore = [".py", ".txt", ".png", ".jpg", ".mp4", ".srt", ".sub", ".rar", ".idx", ".zip", ".dvdrip-info", ".nfo", ".rtf",".bat", ".xlsx"]
+		else:
+			self.ignore = ignore
 		self.p_root = Path(root)
 		if(not self.p_root.exists()):
 			 raise FileNotFoundError()
@@ -33,13 +36,15 @@ class wrong_format_finder:
 
 		return relevant_file_list, unique
 
-	def print_wrong_format(self, padding_on=True, padding_length=15, padding_char = "*"):
+	def print_wrong_format(self, fullPath=False ,padding_on=True, padding_length=15, padding_char = "*"):
 		padding = padding_char*padding_length
 		if(not self.relevant_file_list or not self.unique):
 			print("No search performed")
 			return
 		if(padding_on):
-			print(padding*2)
+			print(padding + "Undesired format{0}".format(": " + self.find) +padding)
 		print("Total files in undesired format: " + str(len(self.relevant_file_list)))
 		if (self.find == "") :
 			print("Diffrent file extentions found: " + str(self.unique))
+		for file in self.relevant_file_list:
+			print(file.name) if not fullPath else print(str(file))
