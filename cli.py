@@ -1,6 +1,15 @@
 import format_wrong_formats
 import find_wrong_format
 from pathlib import Path
+from observer_interface import Observer
+
+class Dimmer(Observer):
+
+    __init__(self)
+        self.k = ""
+    
+    def update(self, update:string):
+        print(string)
 
 padding = "*"*15
 root = input("Root path:")
