@@ -1,5 +1,6 @@
 import subprocess
 from observer_interface import Observer
+from pathlib import Path
 
 
 class VideoFileConverter:
@@ -7,24 +8,25 @@ class VideoFileConverter:
 	def __init__(self):
 		self.observers = []
 
-	def convert_files(self, files_to_convert: list, target_extensions: str, delete_files_when_done=True):
+	def convert_files(self, files_to_convert: list, target_extensions: str, ffmpeg_user_options: str, delete_files_when_done=True):
 		"""
 		converts files in the list
 			Args:
 				files_to_convert: list containing the pathlib paths of the files to convert
 				target_extensions: the extension (eg .mp4) of the output files
 				delete_files_when_done: delete the input file when a output file is generated successfully
+				ffmpeg_user_options: the options to ffmpeg
 		"""
 		failed_conversions = []
-		ffmpeg_IO = ".\\ffmpeg.exe -i \"{0}\" -codec copy \"{1}\"" # ToDo: make general
-		ffmpeg_options = " -loglevel quiet -stats -y -benchmark_all"
-		ffmpeg_command = ffmpeg_IO + ffmpeg_options
+		ffmpeg_user_options = ".\\ffmpeg.exe -i \"{0}\" " + ffmpeg_user_options + " \"{1}\""
 		number_of_files_to_convert = len(files_to_convert)
 
 		for index, file in enumerate(files_to_convert):
-			i = file
-			o = file.with_suffix(target_extensions)
-			completed_process = subprocess.run(ffmpeg_command.format(i, o))  # creationflags=CREATE_NEW_CONSOLE
+			i = Path(file)
+			o = Path(file).with_suffix(target_extensions)
+			if o.exists():
+				continue
+			completed_process = subprocess.run(ffmpeg_user_options.format(i, o))  # creationflags=CREATE_NEW_CONSOLE
 			outcome = "Success"
 			if completed_process.returncode != 0:
 				failed_conversions.append(file)
