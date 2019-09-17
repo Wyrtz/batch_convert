@@ -2,7 +2,7 @@ import subprocess
 from observer_interface import Observer
 
 
-class file_converter:
+class VideoFileConverter:
 
 	def __init__(self):
 		self.observers = []
@@ -31,9 +31,8 @@ class file_converter:
 				outcome = "Failed"
 			self.notify_all((outcome, index+1, number_of_files_to_convert, file.name))
 			# print("{0} converting file {1} of {2}: {3}".format(outcome, index+1, number_of_files_to_convert, file.name))
-			# delete -i
-			#if completed_process.returncode == 0 and delete_files_when_done:
-			#	Path(file).unlink()
+			if completed_process.returncode == 0 and delete_files_when_done:
+				file.unlink()
 
 		return failed_conversions
 

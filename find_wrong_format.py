@@ -1,6 +1,7 @@
 from pathlib import Path
 
-class file_extension_finder:
+
+class FileExtensionFinder:
 	
 	def __init__(self, root, extensions_to_find: list):
 		"""
