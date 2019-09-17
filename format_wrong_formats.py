@@ -25,6 +25,7 @@ class VideoFileConverter:
 			i = Path(file)
 			o = Path(file).with_suffix(target_extensions)
 			if o.exists():
+				print(str(o) + " already exists!")  # ToDo: change handling of prints
 				continue
 			completed_process = subprocess.run(ffmpeg_user_options.format(i, o))  # creationflags=CREATE_NEW_CONSOLE
 			outcome = "Success"
@@ -35,6 +36,8 @@ class VideoFileConverter:
 			# print("{0} converting file {1} of {2}: {3}".format(outcome, index+1, number_of_files_to_convert, file.name))
 			if completed_process.returncode == 0 and delete_files_when_done:
 				file.unlink()
+			elif completed_process.returncode != 0:
+				o.unlink()
 
 		return failed_conversions
 

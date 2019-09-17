@@ -19,12 +19,31 @@ class CLI:
         rel_files, unique = self.find_wrong_formats(self.path, self.ext_to_look_for)
         if not rel_files or self.args.just_scan:    # No files found, or user asks not to convert
             return
-        self.format(rel_files, self.target_extension, self.args.dont_delete_files, self.args.ffmpeg_arguments)
+        failed_conversions = self.format(rel_files,
+                                        self.target_extension,
+                                        self.args.dont_delete_files,
+                                        self.args.ffmpeg_arguments)
+        if failed_conversions:
+            self.printer.print_failed_conversions(failed_conversions, len(rel_files))
+            self.printer.print_section("Retry failed conversions")
+            print("Do you want to re-encode the failed files ? (much slower process)")
+            answer = input("y/n: ")
+            if answer.lower() == "y":
+                new_failed_conversions = self.format(failed_conversions,
+                                         self.target_extension,
+                                         self.args.dont_delete_files,
+                                         "-loglevel quiet -stats -y")
+                if new_failed_conversions:
+                    self.printer.print_failed_conversions(new_failed_conversions, len(failed_conversions))
+
+        else:
+            self.printer.print_section("Success")
+            print("All files converted successfully!")
 
     def get_common_video_file_extensions(self) -> list:
         with open("common_video_file_extensions.txt", "r") as file:
             content = file.readlines()
-        return [str(l).rstrip() for l in content]
+        return [str(l).rstrip().lower() for l in content]
 
     def build_parser(self):
         desc = "Command line interface for batch converting video files into a given file format. " \
@@ -51,6 +70,7 @@ class CLI:
         return parser.parse_args()
 
     def get_list_of_extensions_to_look_for(self, lst: list, target_extension: str) -> list:
+        target_extension = target_extension.lower()
         try:
             lst.remove(target_extension)
         except ValueError:
@@ -66,7 +86,8 @@ class CLI:
         self.printer.print_wrong_format(rel_files, unique)
         return rel_files, unique
 
-    def format(self, rel_files: list, target_extensions: str, delete_files_when_done: bool, ffmpeg_arguments:str):
+    def format(self, rel_files: list, target_extensions: str,
+               delete_files_when_done: bool, ffmpeg_arguments: str) -> list:
         fwf = format_wrong_formats.VideoFileConverter()
         fwf.add_observer(self.printer)
         self.printer.print_section("Converting files")
@@ -74,13 +95,7 @@ class CLI:
                                                target_extensions,
                                                ffmpeg_arguments,
                                                delete_files_when_done=delete_files_when_done)
-
-        if failed_conversions:
-            self.printer.print_failed_conversions(failed_conversions, len(rel_files))
-
-        else:
-            self.printer.print_section("Success")
-            print("All files converted successfully!")
+        return failed_conversions
 
 
 if __name__ == "__main__":
