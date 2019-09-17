@@ -6,7 +6,7 @@ class Observer():
     """
 
     @abstractmethod
-    def update(self) -> None:
+    def update(self, message: tuple) -> None:
         """
         Receive update from subject.
         """
