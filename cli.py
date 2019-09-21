@@ -6,6 +6,10 @@ import argparse
 
 
 class CLI:
+	# ToDo: Make work on Linux too
+	# ToDo: Make nice printer:
+		# Delete the -stat after a file is completed
+		# Show the name of the file being converted
 
     def __init__(self):
         self.args = self.build_parser()
