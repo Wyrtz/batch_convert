@@ -6,19 +6,20 @@ import argparse
 
 
 class CLI:
-	# ToDo: Make work on Linux too
-	# ToDo: Make nice printer:
-		# Delete the -stat after a file is completed
-		# Show the name of the file being converted
+    # ToDo: Make work on Linux too
+    # ToDo: Make nice printer:
+        # Delete the -stat after a file is completed
+        # Show the name of the file being converted
 
     def __init__(self):
         self.args = self.build_parser()
-        self.com_vid_fil_ext = self.get_common_video_file_extensions()
+        self.ext_to_look_for = self.get_common_video_file_extensions()
         self.path = Path(self.args.input_folder)
         if not self.path.exists():
             raise FileNotFoundError("The input-folder was not found: " + str(self.path))
         self.target_extension = self.args.target_file_extension
-        self.ext_to_look_for = self.get_list_of_extensions_to_look_for(self.com_vid_fil_ext, self.target_extension)
+        if not self.args.complete_conversion:
+            self.ext_to_look_for = self.get_list_of_extensions_to_look_for(self.ext_to_look_for, self.target_extension)
         self.printer = Printer()
         rel_files, unique = self.find_wrong_formats(self.path, self.ext_to_look_for)
         if not rel_files or self.args.just_scan:    # No files found, or user asks not to convert
@@ -26,7 +27,8 @@ class CLI:
         failed_conversions = self.format(rel_files,
                                         self.target_extension,
                                         self.args.dont_delete_files,
-                                        self.args.ffmpeg_arguments)
+                                        self.args.ffmpeg_arguments,
+                                        self.args.complete_conversion)
         if failed_conversions:
             self.printer.print_failed_conversions(failed_conversions, len(rel_files))
             self.printer.print_section("Retry failed conversions")
@@ -70,6 +72,11 @@ class CLI:
                                  "If provided, will have the structure "
                                  "\"ffmpeg.exe -i [input_file] [your parameters] [output_file] "
                                  "Default is \".\\ffmpeg.exe -i [input_file] -codec copy [output_file] -loglevel quiet -stats -y\" ")
+        parser.add_argument("-c", "--complete_conversion", default=False, action="store_true",
+                            help="Convert all files, even files already in this format. Eg mp4->mp4. Useful if combined with -a to compress files")
+        #ToDo:
+        # parser.add_argument("-o", "--output_folder", type=str,
+        #                    help="Put all transcoded files at this path (folder)")
 
         return parser.parse_args()
 
@@ -91,14 +98,15 @@ class CLI:
         return rel_files, unique
 
     def format(self, rel_files: list, target_extensions: str,
-               delete_files_when_done: bool, ffmpeg_arguments: str) -> list:
+               delete_files_when_done: bool, ffmpeg_arguments: str, complete_convert: bool) -> list:
         fwf = format_wrong_formats.VideoFileConverter()
         fwf.add_observer(self.printer)
         self.printer.print_section("Converting files")
         failed_conversions = fwf.convert_files(rel_files,
                                                target_extensions,
                                                ffmpeg_arguments,
-                                               delete_files_when_done=delete_files_when_done)
+                                               delete_files_when_done=delete_files_when_done,
+                                               complete_convert=complete_convert)
         return failed_conversions
 
 

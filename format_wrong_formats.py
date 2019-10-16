@@ -8,12 +8,12 @@ class VideoFileConverter:
 	def __init__(self):
 		self.observers = []
 
-	def convert_files(self, files_to_convert: list, target_extensions: str, ffmpeg_user_options: str, delete_files_when_done=True):
+	def convert_files(self, files_to_convert: list, target_extension: str, ffmpeg_user_options: str, delete_files_when_done=True, complete_convert=False):
 		"""
 		converts files in the list
 			Args:
 				files_to_convert: list containing the pathlib paths of the files to convert
-				target_extensions: the extension (eg .mp4) of the output files
+				target_extension: the extension (eg .mp4) of the output files
 				delete_files_when_done: delete the input file when a output file is generated successfully
 				ffmpeg_user_options: the options to ffmpeg
 		"""
@@ -23,11 +23,16 @@ class VideoFileConverter:
 
 		for index, file in enumerate(files_to_convert):
 			i = Path(file)
-			o = Path(file).with_suffix(target_extensions)
+			o = Path(file).with_suffix(target_extension)
 			if o.exists():
-				print(str(o) + " already exists!")  # ToDo: change handling of prints
-				continue
+				if complete_convert:
+					o = o.with_name(o.stem + "-tmp" + target_extension)
+					#o = o.with_suffix(".tmp" + target_extension)
+				else:
+					print(str(o) + " already exists!")  # ToDo: change handling of prints
+					continue
 			completed_process = subprocess.run(ffmpeg_user_options.format(i, o))  # creationflags=CREATE_NEW_CONSOLE
+			print("\r")
 			outcome = "Success"
 			if completed_process.returncode != 0:
 				failed_conversions.append(file)
@@ -36,8 +41,13 @@ class VideoFileConverter:
 			# print("{0} converting file {1} of {2}: {3}".format(outcome, index+1, number_of_files_to_convert, file.name))
 			if completed_process.returncode == 0 and delete_files_when_done:
 				file.unlink()
+				if complete_convert:
+					# o.rename(o.with_suffix(target_extension))
+					o.rename(o.with_name(o.stem[:-4] + target_extension))
+
 			elif completed_process.returncode != 0:
-				o.unlink()
+				if o.exists():
+					o.unlink()
 
 		return failed_conversions
 
