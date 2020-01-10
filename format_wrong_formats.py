@@ -8,7 +8,11 @@ class VideoFileConverter:
 	def __init__(self):
 		self.observers = []
 
-	def convert_files(self, files_to_convert: list, target_extension: str, ffmpeg_user_options: str, delete_files_when_done=True):
+	def convert_files(self, files_to_convert: list,
+					  target_extension: str,
+					  ffmpeg_user_options: str,
+					  delete_files_when_done=True,
+					  output_folder = None):
 		"""
 		converts files in the list
 			Args:
@@ -25,6 +29,8 @@ class VideoFileConverter:
 			i = Path(file)
 			o = Path(file).with_suffix(target_extension)
 			o = o.with_name(o.stem + "-tmp" + target_extension)
+			if output_folder:
+				o = Path(Path(output_folder) / i.name)
 			#o = o.with_suffix(".tmp" + target_extension)
 			completed_process = subprocess.run(ffmpeg_user_options.format(i, o))  # creationflags=CREATE_NEW_CONSOLE
 			print("\r")

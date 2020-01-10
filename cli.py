@@ -32,7 +32,8 @@ class CLI:
         failed_conversions = self.format(rel_files,
                                         self.target_extension,
                                         self.args.dont_delete_files,
-                                        self.args.ffmpeg_arguments)
+                                        self.args.ffmpeg_arguments,
+                                        self.args.output_folder)
         if failed_conversions:
             self.printer.print_failed_conversions(failed_conversions, len(rel_files))
             self.printer.print_section("Retry failed conversions")
@@ -42,7 +43,8 @@ class CLI:
                 new_failed_conversions = self.format(failed_conversions,
                                          self.target_extension,
                                          self.args.dont_delete_files,
-                                         self.quiet_log)
+                                         self.quiet_log,
+                                         self.args.output_folder)
                 if new_failed_conversions:
                     self.printer.print_failed_conversions(new_failed_conversions, len(failed_conversions))
 
@@ -79,6 +81,8 @@ class CLI:
                                  "Default is \".\\ffmpeg.exe -i [input_file] [output_file] -loglevel quiet -stats -y\" ")
         parser.add_argument("-c", "--codex_copy", default=False, action="store_true",
                             help="Keep the codex and quality, just change file format")
+        parser.add_argument("-o", "--output_folder", type=str, default=None,
+                            help="Folder to place the converted files in. Default = same path as before converting")
         #ToDo:
         # parser.add_argument("-o", "--output_folder", type=str,
         #                    help="Put all transcoded files at this path (folder)")
@@ -103,14 +107,15 @@ class CLI:
         return rel_files, unique
 
     def format(self, rel_files: list, target_extensions: str,
-               delete_files_when_done: bool, ffmpeg_arguments: str) -> list:
+               delete_files_when_done: bool, ffmpeg_arguments: str, output_folder=None) -> list:
         fwf = format_wrong_formats.VideoFileConverter()
         fwf.add_observer(self.printer)
         self.printer.print_section("Converting files")
         failed_conversions = fwf.convert_files(rel_files,
                                                target_extensions,
                                                ffmpeg_arguments,
-                                               delete_files_when_done=delete_files_when_done)
+                                               delete_files_when_done=delete_files_when_done,
+                                               output_folder=output_folder)
         return failed_conversions
 
 
